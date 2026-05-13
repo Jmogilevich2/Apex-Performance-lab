@@ -1,0 +1,32 @@
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.metrics import mean_absolute_error, r2_score
+import joblib
+import shap
+
+class SportsPerformancePredictor:
+    def __init__(self):
+        self.model = RandomForestRegressor(n_estimators=200, random_state=42)
+    
+    def train(self, data_path: str):
+        df = pd.read_csv(data_path)
+        features = ['velocity', 'spin_rate', 'arm_angle', 'body_weight', 
+                   'max_strength', 'age', 'previous_injuries']
+        X = df[features]
+        y = df['next_season_velocity']
+        
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+        
+        self.model.fit(X_train, y_train)
+        
+        preds = self.model.predict(X_test)
+        print(f"MAE: {mean_absolute_error(y_test, preds):.2f} mph")
+        print(f"R² Score: {r2_score(y_test, preds):.3f}")
+        
+        joblib.dump(self.model, 'baseball_velocity_predictor.pkl')
+        print("✅ Model saved!")
+
+if __name__ == "__main__":
+    predictor = SportsPerformancePredictor()
+    predictor.train("baseball_player_data.csv")
